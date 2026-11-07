@@ -1,9 +1,14 @@
 resource "aws_lb" "app" {
-  name               = "${var.name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [var.security_group_id]
-  subnets            = var.public_subnet_ids
+  #checkov:skip=CKV_AWS_91:Access logs are omitted in this disposable learning stack to avoid extra S3 storage and logging costs.
+  #checkov:skip=CKV_AWS_150:Deletion protection is disabled so Terraform can destroy the dev stack.
+  #checkov:skip=CKV2_AWS_28:WAF is omitted from this learning stack to avoid additional cost.
+  name                       = "${var.name}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  drop_invalid_header_fields = true
+  enable_deletion_protection = false
+  security_groups            = [var.security_group_id]
+  subnets                    = var.public_subnet_ids
 
   tags = {
     Name = "${var.name}-alb"
@@ -11,6 +16,7 @@ resource "aws_lb" "app" {
 }
 
 resource "aws_lb_target_group" "app" {
+  #checkov:skip=CKV_AWS_378:HTTP is used only between the ALB and app instances inside the VPC.
   name        = "${var.name}-tg"
   port        = var.target_port
   protocol    = "HTTP"
@@ -34,6 +40,9 @@ resource "aws_lb_target_group" "app" {
 }
 
 resource "aws_lb_listener" "http" {
+  #checkov:skip=CKV_AWS_2:This lab has no domain or ACM certificate, so the public demo currently uses HTTP.
+  #checkov:skip=CKV2_AWS_20:HTTPS redirect is deferred until a domain and certificate are configured.
+  #checkov:skip=CKV_AWS_103:No HTTPS listener or TLS policy is configured for this HTTP-only lab.
   load_balancer_arn = aws_lb.app.arn
   port              = 80
   protocol          = "HTTP"
