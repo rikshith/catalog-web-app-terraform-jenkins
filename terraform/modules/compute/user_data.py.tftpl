@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+
+import base64
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from urllib.parse import quote
+
+log_file = open("/var/log/user-data.log", "a", buffering=1)
+sys.stdout = log_file
+sys.stderr = log_file
+
+
+def run(command, *, input_text=None, env=None, capture_output=False):
+    return subprocess.run(
+        command,
+        check=True,
+        text=True,
+        input=input_text,
+        env=env,
+        stdout=subprocess.PIPE if capture_output else None,
+        stderr=subprocess.PIPE if capture_output else None,
+    )
+
+
+region = "${aws_region}"
+registry_url = "${registry_url}"
+image_uri = "${image_uri}"
+database_secret_arn = "${database_secret_arn}"
+database_address = "${database_address}"
+database_port = "${database_port}"
+database_name = "${database_name}"
+database_init_sql_base64 = "${database_init_sql_base64}"
+
+print("Installing Docker and PostgreSQL client.")
+run(["dnf", "install", "-y", "docker", "postgresql15"])
+run(["systemctl", "enable", "--now", "docker"])
+
+sql_path = Path("/tmp/catalog-init.sql")
+sql_path.write_bytes(base64.b64decode(database_init_sql_base64))
+sql_path.chmod(0o600)
+
+print("Retrieving database credentials.")
+secret_result = run(
+    [
+        "aws", "secretsmanager", "get-secret-value",
+        "--secret-id", database_secret_arn,
+        "--region", region,
+        "--query", "SecretString",
+        "--output", "text",
+    ],
+    capture_output=True,
+)
+secret = json.loads(secret_result.stdout)
+
+database_env = os.environ.copy()
+database_env["PGPASSWORD"] = secret["password"]
+
+print("Initializing the database.")
+run(
+    [
+        "psql",
+        "--host", database_address,
+        "--port", str(database_port),
+        "--username", secret["username"],
+        "--dbname", database_name,
+        "--set", "ON_ERROR_STOP=1",
+        "--file", str(sql_path),
+    ],
+    env=database_env,
+)
+
+print("Logging in to ECR and pulling the application image.")
+ecr_password = run(
+    ["aws", "ecr", "get-login-password", "--region", region],
+    capture_output=True,
+).stdout
+
+run(
+    ["docker", "login", "--username", "AWS", "--password-stdin", registry_url],
+    input_text=ecr_password,
+)
+
+run(["docker", "pull", image_uri])
+
+database_url = "postgresql://{}:{}@{}:{}/{}".format(
+    quote(secret["username"], safe=""),
+    quote(secret["password"], safe=""),
+    database_address,
+    database_port,
+    quote(database_name, safe=""),
+)
+
+print("Starting the application container.")
+run(
+    [
+        "docker", "run", "--detach",
+        "--name", "catalog-app",
+        "--restart", "unless-stopped",
+        "--publish", "8080:8080",
+        "--env", "DATABASE_URL=" + database_url,
+        image_uri,
+    ]
+)
+
+print("Application startup completed.")

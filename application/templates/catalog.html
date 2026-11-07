@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Field Supply | Product Catalog</title>
+  <style>
+    :root { color-scheme: light; font-family: Arial, sans-serif; color: #17212b; background: #f4f7f9; }
+    body { margin: 0; }
+    header { padding: 2.5rem max(1.5rem, calc((100% - 960px) / 2)); background: #17324d; color: white; }
+    header p { margin-bottom: 0; color: #d8e5ef; }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    article { padding: 1.25rem; border: 1px solid #d8e0e6; border-radius: 10px; background: white; }
+    .price { color: #2e6f95; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Field Supply</h1>
+    <p>Simple gear for time outside.</p>
+  </header>
+  <main>
+    <h2>Product catalog</h2>
+    {% if products %}
+    <section class="grid" aria-label="Products">
+      {% for product in products %}
+      <article>
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.description }}</p>
+        <p class="price">${{ '%.2f'|format(product.price) }}</p>
+      </article>
+      {% endfor %}
+    </section>
+    {% else %}
+    <p>No products are available yet.</p>
+    {% endif %}
+  </main>
+</body>
+</html>

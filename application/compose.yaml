@@ -1,0 +1,30 @@
+services:
+  database:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: catalog
+      POSTGRES_USER: catalog_user
+      POSTGRES_PASSWORD: local_catalog_password
+    volumes:
+      - catalog_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog_user -d catalog"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+    environment:
+      DATABASE_URL: postgresql://catalog_user:local_catalog_password@database:5432/catalog
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  catalog_data:

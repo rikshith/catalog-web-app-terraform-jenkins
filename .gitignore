@@ -1,0 +1,30 @@
+# Python
+.venv/
+**/.venv/
+__pycache__/
+*.py[cod]
+
+# Terraform local data and state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+
+# Local credentials and secrets
+.env
+.env.*
+.aws/
+**/.aws/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# AWS CLI installer used for local setup
+application/aws/
+**/awscliv2.zip
