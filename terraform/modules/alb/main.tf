@@ -1,4 +1,5 @@
 resource "aws_lb" "app" {
+  #checkov:skip=CKV2_AWS_20:HTTPS redirect is deferred because this lab has no domain or ACM certificate.
   #checkov:skip=CKV_AWS_91:Access logs are omitted in this disposable learning stack to avoid extra S3 storage and logging costs.
   #checkov:skip=CKV_AWS_150:Deletion protection is disabled so Terraform can destroy the dev stack.
   #checkov:skip=CKV2_AWS_28:WAF is omitted from this learning stack to avoid additional cost.
