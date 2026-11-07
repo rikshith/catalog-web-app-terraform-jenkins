@@ -13,3 +13,8 @@ variable "app_port" {
   type        = number
   default     = 8080
 }
+
+variable "vpc_cidr" {
+  description = "CIDR range of the VPC for restricted security group egress."
+  type        = string
+}

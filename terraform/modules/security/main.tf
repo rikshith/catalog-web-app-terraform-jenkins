@@ -1,4 +1,6 @@
 resource "aws_security_group" "alb" {
+  #checkov:skip=CKV_AWS_260:Public HTTP on port 80 is intentional for this temporary learning demo.
+  #checkov:skip=CKV2_AWS_5:This group is passed to the ALB through the root module; Checkov does not resolve that cross-module attachment.
   name        = "${var.name}-alb"
   description = "Allow public HTTP traffic to the application load balancer."
   vpc_id      = var.vpc_id
@@ -12,11 +14,11 @@ resource "aws_security_group" "alb" {
   }
 
   egress {
-    description = "Allow outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "Application traffic to targets within the VPC"
+    from_port   = var.app_port
+    to_port     = var.app_port
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   tags = {
@@ -25,6 +27,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "app" {
+  #checkov:skip=CKV2_AWS_5:This group is passed to the Auto Scaling group through the root module; Checkov does not resolve that cross-module attachment.
   name        = "${var.name}-app"
   description = "Allow application traffic only from the load balancer."
   vpc_id      = var.vpc_id
@@ -38,11 +41,19 @@ resource "aws_security_group" "app" {
   }
 
   egress {
-    description = "Allow outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "HTTPS for ECR, Secrets Manager, and package downloads"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "PostgreSQL traffic within the VPC"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   tags = {
@@ -51,6 +62,7 @@ resource "aws_security_group" "app" {
 }
 
 resource "aws_security_group" "database" {
+  #checkov:skip=CKV2_AWS_5:This group is passed to the RDS module through the root module; Checkov does not resolve that cross-module attachment.
   name        = "${var.name}-database"
   description = "Allow PostgreSQL traffic only from the application instances."
   vpc_id      = var.vpc_id
@@ -61,14 +73,6 @@ resource "aws_security_group" "database" {
     to_port         = 5432
     protocol        = "tcp"
     security_groups = [aws_security_group.app.id]
-  }
-
-  egress {
-    description = "Allow outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {

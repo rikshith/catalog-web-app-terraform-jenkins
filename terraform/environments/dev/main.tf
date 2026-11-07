@@ -31,6 +31,7 @@ module "security" {
   name     = "${var.project_name}-${var.environment}"
   vpc_id   = module.network.vpc_id
   app_port = 8080
+  vpc_cidr = "10.20.0.0/16"
 }
 
 module "alb" {
