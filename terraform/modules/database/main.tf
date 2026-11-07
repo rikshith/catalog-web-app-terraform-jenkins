@@ -32,7 +32,7 @@ resource "aws_db_instance" "app" {
   auto_minor_version_upgrade = true
   deletion_protection        = false
   skip_final_snapshot        = true
-  copy_tags_to_snapshot = true
+  copy_tags_to_snapshot      = true
 
   tags = {
     Name = "${var.name}-postgres"
