@@ -1,4 +1,5 @@
 resource "aws_vpc" "this" {
+  #checkov:skip=CKV2_AWS_11:VPC flow logs add CloudWatch storage costs; app CPU and ALB errors are monitored in this lab.
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -134,4 +135,12 @@ resource "aws_route_table_association" "database" {
 
   subnet_id      = each.value.id
   route_table_id = aws_route_table.database.id
+}
+
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = "${var.name}-default-sg"
+  }
 }

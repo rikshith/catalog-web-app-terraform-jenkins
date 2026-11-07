@@ -1,4 +1,5 @@
 data "aws_availability_zones" "available" {
+  #checkov:skip=CKV_AWS_394:Dev selects two available AZs in the configured region; the fixed subnet lists keep the deployment at two AZs.
   state = "available"
 }
 

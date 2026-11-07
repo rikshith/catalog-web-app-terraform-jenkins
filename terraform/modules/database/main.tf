@@ -9,6 +9,12 @@ resource "aws_db_subnet_group" "app" {
 }
 
 resource "aws_db_instance" "app" {
+  #checkov:skip=CKV_AWS_118:Enhanced monitoring is outside this small lab and adds monitoring overhead.
+  #checkov:skip=CKV_AWS_293:Deletion protection is disabled so Terraform can destroy the disposable dev database.
+  #checkov:skip=CKV_AWS_129:Database log exports add CloudWatch storage costs; this lab monitors CPU and ALB errors.
+  #checkov:skip=CKV_AWS_161:The app uses the RDS-managed Secrets Manager password; IAM database authentication is not configured.
+  #checkov:skip=CKV_AWS_353:Performance Insights is unnecessary for this small test database.
+  #checkov:skip=CKV2_AWS_30:Query logging requires additional database logging configuration and CloudWatch storage.
   identifier     = "${var.name}-postgres"
   engine         = "postgres"
   instance_class = var.instance_class

@@ -5,7 +5,8 @@ locals {
 }
 
 resource "aws_sns_topic" "alerts" {
-  name = "${var.name}-alerts"
+  name              = "${var.name}-alerts"
+  kms_master_key_id = "alias/aws/sns"
 }
 
 data "aws_iam_policy_document" "cloudwatch_publish" {

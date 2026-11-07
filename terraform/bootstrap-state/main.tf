@@ -7,6 +7,11 @@ locals {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
+  #checkov:skip=CKV2_AWS_62:This Terraform state bucket does not need event notifications.
+  #checkov:skip=CKV2_AWS_61:S3 versioning is enabled; lifecycle expiration is omitted to preserve state history.
+  #checkov:skip=CKV_AWS_18:Access logging would require a separate log bucket and add storage and request costs.
+  #checkov:skip=CKV_AWS_144:Cross-region replication adds cost and is outside this single-region learning setup.
+  #checkov:skip=CKV_AWS_145:The bucket uses SSE-S3 AES256; a customer-managed KMS key is unnecessary for this lab.
   bucket = local.state_bucket_name
 
   lifecycle {
@@ -42,6 +47,8 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 }
 
 resource "aws_dynamodb_table" "terraform_lock" {
+  #checkov:skip=CKV_AWS_28:This table stores transient Terraform locks and can be recreated; point-in-time recovery is not needed.
+  #checkov:skip=CKV_AWS_119:The lock table contains no application data; a customer-managed KMS key is outside this lab's scope.
   name         = var.lock_table_name
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
