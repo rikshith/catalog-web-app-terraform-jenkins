@@ -12,6 +12,7 @@ pipeline {
         AWS_DEFAULT_REGION = 'ap-south-2'
         AWS_SDK_LOAD_CONFIG = '1'
         TF_IN_AUTOMATION = 'true'
+        TF_VAR_alert_email = credentials('sns-alert-email')
     }
 
     stages {

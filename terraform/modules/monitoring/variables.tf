@@ -21,4 +21,5 @@ variable "load_balancer_arn" {
 variable "alert_email" {
   description = "Email address for monitoring notifications."
   type        = string
+  sensitive = true
 }
