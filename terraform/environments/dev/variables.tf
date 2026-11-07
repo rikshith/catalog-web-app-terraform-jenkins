@@ -22,3 +22,9 @@ variable "alert_email" {
   sensitive   = true
 
 }
+
+variable "image_tag" {
+  description = "Unique ECR image tag to deploy."
+  type        = string
+  default     = "v1"
+}

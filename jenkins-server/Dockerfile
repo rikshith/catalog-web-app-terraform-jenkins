@@ -5,7 +5,7 @@ USER root
 ARG TERRAFORM_VERSION=1.17.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl git python3 pipx unzip \
+    ca-certificates curl git python3 pipx unzip docker-cli \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSLo /tmp/terraform.zip \

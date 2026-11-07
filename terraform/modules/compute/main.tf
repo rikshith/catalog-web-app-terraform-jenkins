@@ -103,6 +103,18 @@ resource "aws_autoscaling_group" "app" {
     version = aws_launch_template.app.latest_version
   }
 
+  instance_refresh {
+    strategy = "Rolling"
+
+    triggers = ["launch_template"]
+
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 300
+      skip_matching          = true
+    }
+  }
+
   tag {
     key                 = "Name"
     value               = "${var.name}-app"

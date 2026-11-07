@@ -69,7 +69,7 @@ module "compute" {
   name       = "${var.project_name}-${var.environment}"
   aws_region = var.aws_region
 
-  image_uri      = "${module.container_registry.repository_url}:v1"
+  image_uri      = "${module.container_registry.repository_url}:${var.image_tag}"
   repository_arn = module.container_registry.repository_arn
 
   subnet_ids            = module.network.app_subnet_ids

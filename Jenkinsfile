@@ -43,6 +43,43 @@ pipeline {
             }
         }
 
+                stage('Build and Push Image') {
+            steps {
+                script {
+                    env.IMAGE_TAG = sh(
+                        script: 'git rev-parse --short=12 HEAD',
+                        returnStdout: true
+                    ).trim() + "-${env.BUILD_NUMBER}"
+
+                    env.TF_VAR_image_tag = env.IMAGE_TAG
+                }
+
+                dir('terraform/environments/dev') {
+                    script {
+                        env.ECR_REPOSITORY_URL = sh(
+                            script: 'terraform output -raw container_image_repository_url',
+                            returnStdout: true
+                        ).trim()
+                    }
+                }
+
+                sh '''
+                    set -eu
+                    ECR_REGISTRY="${ECR_REPOSITORY_URL%%/*}"
+
+                    aws ecr get-login-password --region "$AWS_REGION" \
+                      | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+                    docker build \
+                      -f application/Dockerfile \
+                      -t "$ECR_REPOSITORY_URL:$IMAGE_TAG" \
+                      application
+
+                    docker push "$ECR_REPOSITORY_URL:$IMAGE_TAG"
+                '''
+            }
+        }
+
         stage('Terraform Plan') {
             steps {
                 dir('terraform/environments/dev') {
